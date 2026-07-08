@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>九巴與天氣資訊看板</title>
+    <title>九巴與天氣資訊看板 (10秒更新版)</title>
     <style>
         /* 模擬電子墨水屏 (E-ink) 的基本設定 */
         :root {
@@ -83,24 +83,29 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            justify-content: flex-start;
         }
 
         .bus-row {
             display: flex;
             align-items: center;
-            padding: 15px 0;
+            padding: 18px 0;
             border-bottom: 1px solid var(--border-color);
+        }
+
+        .bus-row:last-child {
+            border-bottom: none;
         }
 
         .bus-route {
             background-color: var(--badge-bg);
-            padding: 4px 16px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 24px;
             font-weight: bold;
-            width: 60px;
+            width: 75px;
             text-align: center;
-            margin-right: 20px;
+            margin-right: 15px;
         }
 
         .bus-etas {
@@ -128,7 +133,7 @@
             margin-top: 2px;
         }
 
-        /* 右側：天氣資訊 (取代壽司郎) */
+        /* 右側：天氣資訊 */
         .weather-list {
             flex: 1;
             display: flex;
@@ -141,6 +146,10 @@
             justify-content: space-between;
             padding: 16px 0;
             border-bottom: 1px dashed var(--border-color);
+        }
+
+        .weather-row:last-child {
+            border-bottom: none;
         }
 
         .weather-label {
@@ -193,210 +202,8 @@
 
     <div class="device-frame">
         <div class="content">
-            <!-- 左側：九巴資訊 -->
             <div class="panel" id="bus-panel">
                 <div class="loading">載入九巴資訊中...</div>
             </div>
 
-            <!-- 中間分隔線 -->
             <div class="panel-divider"></div>
-
-            <!-- 右側：天氣資訊 -->
-            <div class="panel" id="weather-panel">
-                <div class="loading">載入天氣資訊中...</div>
-            </div>
-        </div>
-
-        <!-- 底部狀態列 -->
-        <div class="footer">
-            <div class="footer-section">
-                <span>九巴到站時間</span>
-                <span class="clock">00:00</span>
-            </div>
-            <div class="footer-section">
-                <span>香港天氣情況</span>
-                <span class="clock">00:00</span>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // ==========================================
-        // 設定區
-        // ==========================================
-        // 你可以在這裡更改九巴站點的 ID (Stop ID)
-        // 預設為一個常用站點，如需尋找特定站點 ID，可參考 DATA.GOV.HK 九巴 API 說明
-        const KMB_STOP_ID = '18492910339410B1'; 
-
-        // ==========================================
-        // 時鐘更新邏輯
-        // ==========================================
-        function updateClock() {
-            const now = new Date();
-            const hh = String(now.getHours()).padStart(2, '0');
-            const mm = String(now.getMinutes()).padStart(2, '0');
-            const timeString = `${hh}:${mm}`;
-            document.querySelectorAll('.clock').forEach(el => el.textContent = timeString);
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // ==========================================
-        // 九巴 API 邏輯
-        // ==========================================
-        async function fetchBusData() {
-            try {
-                const response = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/${KMB_STOP_ID}`);
-                const json = await response.json();
-                
-                if (!json.data || json.data.length === 0) {
-                    document.getElementById('bus-panel').innerHTML = '<div class="loading">暫無巴士班次資料</div>';
-                    return;
-                }
-
-                // 根據路線 (route) 進行分組
-                const routesMap = {};
-                json.data.forEach(item => {
-                    if (item.eta) { // 確保有預計時間
-                        if (!routesMap[item.route]) routesMap[item.route] = [];
-                        routesMap[item.route].push(item);
-                    }
-                });
-
-                let html = '<div class="bus-list">';
-                
-                // 限制最多顯示 5 條路線以符合版面
-                const routeKeys = Object.keys(routesMap).slice(0, 5);
-                
-                routeKeys.forEach(route => {
-                    // 根據到站時間排序
-                    let etas = routesMap[route].sort((a, b) => new Date(a.eta) - new Date(b.eta));
-                    // 限制每條路線最多顯示 3 個班次
-                    etas = etas.slice(0, 3);
-
-                    html += `
-                        <div class="bus-row">
-                            <div class="bus-route">${route}</div>
-                            <div class="bus-etas">
-                    `;
-
-                    // 填補空缺，確保版面整齊（若不足 3 班車）
-                    for(let i=0; i<3; i++) {
-                        if (etas[i]) {
-                            const etaDate = new Date(etas[i].eta);
-                            const hh = String(etaDate.getHours()).padStart(2, '0');
-                            const mm = String(etaDate.getMinutes()).padStart(2, '0');
-                            
-                            // 判斷是否為原定班次 (Scheduled) 或是實時 (Real-time)
-                            const remark = etas[i].rmk_tc || '實時班次';
-                            let displayRemark = remark.includes("原定") ? "原定班次" : "實時預測";
-
-                            html += `
-                                <div class="eta-item">
-                                    <div class="eta-time">${hh}:${mm}</div>
-                                    <div class="eta-remark">${displayRemark}</div>
-                                </div>
-                            `;
-                        } else {
-                            html += `
-                                <div class="eta-item">
-                                    <div class="eta-time" style="color:transparent;">--:--</div>
-                                    <div class="eta-remark"></div>
-                                </div>
-                            `;
-                        }
-                    }
-
-                    html += `</div></div>`;
-                });
-
-                html += '</div>';
-                document.getElementById('bus-panel').innerHTML = html;
-
-            } catch (error) {
-                console.error('Bus API Error:', error);
-                document.getElementById('bus-panel').innerHTML = '<div class="loading">無法連接巴士資訊</div>';
-            }
-        }
-
-        // ==========================================
-        // 天氣 API 邏輯 (香港天文台)
-        // ==========================================
-        async function fetchWeatherData() {
-            try {
-                const response = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc');
-                const data = await response.json();
-
-                // 提取所需資料
-                const temp = data.temperature.data[0].value;
-                const tempPlace = data.temperature.data[0].place;
-                const humidity = data.humidity.data[0].value;
-                const uv = data.uvindex ? data.uvindex.data[0].value : '--';
-                const rain = data.rainfall.data[0].max;
-                
-                // 處理警告訊息
-                let warningText = '無';
-                if (data.warningMessage && data.warningMessage.length > 0) {
-                    warningText = '生效中';
-                }
-
-                // 產生 HTML，模仿壽司郎排隊版面的列表風格
-                const html = `
-                    <div class="weather-list">
-                        <div class="weather-row">
-                            <div class="weather-label">氣溫 (${tempPlace})</div>
-                            <div class="weather-value-group">
-                                <div class="weather-value">${temp}</div>
-                                <div class="weather-unit">°C</div>
-                            </div>
-                        </div>
-                        <div class="weather-row">
-                            <div class="weather-label">相對濕度</div>
-                            <div class="weather-value-group">
-                                <div class="weather-value">${humidity}</div>
-                                <div class="weather-unit">%</div>
-                            </div>
-                        </div>
-                        <div class="weather-row">
-                            <div class="weather-label">紫外線指數</div>
-                            <div class="weather-value-group">
-                                <div class="weather-value">${uv}</div>
-                                <div class="weather-unit">指數</div>
-                            </div>
-                        </div>
-                        <div class="weather-row">
-                            <div class="weather-label">最高雨量</div>
-                            <div class="weather-value-group">
-                                <div class="weather-value">${rain}</div>
-                                <div class="weather-unit">mm</div>
-                            </div>
-                        </div>
-                        <div class="weather-row">
-                            <div class="weather-label">天氣警告</div>
-                            <div class="weather-value-group">
-                                <div class="weather-value" style="font-size: 24px;">${warningText}</div>
-                                <div class="weather-unit">狀態</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById('weather-panel').innerHTML = html;
-
-            } catch (error) {
-                console.error('Weather API Error:', error);
-                document.getElementById('weather-panel').innerHTML = '<div class="loading">無法連接天氣資訊</div>';
-            }
-        }
-
-        // ==========================================
-        // 初始化與定時更新 (每 60 秒更新一次數據)
-        // ==========================================
-        fetchBusData();
-        fetchWeatherData();
-        setInterval(fetchBusData, 60000); 
-        setInterval(fetchWeatherData, 60000);
-
-    </script>
-</body>
-</html>
