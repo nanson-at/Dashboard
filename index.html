@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>九巴與天氣資訊看板 (10秒更新版)</title>
+    <title>九巴與天氣資訊看板</title>
     <style>
         /* 模擬電子墨水屏 (E-ink) 的基本設定 */
         :root {
@@ -83,29 +83,40 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
         }
 
         .bus-row {
             display: flex;
             align-items: center;
-            padding: 18px 0;
+            padding: 7px 0;
             border-bottom: 1px solid var(--border-color);
         }
 
-        .bus-row:last-child {
-            border-bottom: none;
+        .bus-route-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90px;
+            margin-right: 15px;
         }
 
         .bus-route {
             background-color: var(--badge-bg);
-            padding: 4px 12px;
+            padding: 3px 0;
             border-radius: 20px;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
-            width: 75px;
+            width: 100%;
             text-align: center;
-            margin-right: 15px;
+        }
+
+        .bus-dest {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--light-text);
+            margin-top: 3px;
+            text-align: center;
+            white-space: nowrap;
         }
 
         .bus-etas {
@@ -122,18 +133,18 @@
         }
 
         .eta-time {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: bold;
             letter-spacing: 1px;
         }
 
         .eta-remark {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--light-text);
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
-        /* 右側：天氣資訊 */
+        /* 右側：天氣資訊 (取代壽司郎) */
         .weather-list {
             flex: 1;
             display: flex;
@@ -144,12 +155,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 0;
+            padding: 10px 0;
             border-bottom: 1px dashed var(--border-color);
-        }
-
-        .weather-row:last-child {
-            border-bottom: none;
         }
 
         .weather-label {
@@ -202,8 +209,359 @@
 
     <div class="device-frame">
         <div class="content">
+            <!-- 左側：九巴資訊 -->
             <div class="panel" id="bus-panel">
                 <div class="loading">載入九巴資訊中...</div>
             </div>
 
+            <!-- 中間分隔線 -->
             <div class="panel-divider"></div>
+
+            <!-- 右側：天氣資訊 -->
+            <div class="panel" id="weather-panel">
+                <div class="loading">載入天氣資訊中...</div>
+            </div>
+        </div>
+
+        <!-- 底部狀態列 -->
+        <div class="footer">
+            <div class="footer-section">
+                <span>巴士與小巴到站時間</span>
+                <span class="clock">00:00</span>
+            </div>
+            <div class="footer-section">
+                <span>香港天氣情況</span>
+                <span class="clock">00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 設定區
+        // ==========================================
+        // 巴士與小巴路線及站點配置 (錦上路 205E / 石湖塘 / 威裕花園 附近站點)
+        const BUS_CONFIGS = [
+            {
+                type: 'KMB',
+                route: '251A',
+                url: 'https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/7AA3F7F89AD36B1B', // 石湖塘 YL659
+                filterRoute: '251A',
+                dest: '上村'
+            },
+            {
+                type: 'KMB',
+                route: '64K',
+                url: 'https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/7AA3F7F89AD36B1B', // 石湖塘 YL659
+                filterRoute: '64K',
+                dest: '大埔墟站'
+            },
+            {
+                type: 'KMB',
+                route: '64K',
+                url: 'https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/3D29F886079F85E9', // 石湖塘 YL694
+                filterRoute: '64K',
+                dest: '元朗(西)'
+            },
+            {
+                type: 'GMB',
+                route: '71',
+                url: 'https://data.etagmb.gov.hk/eta/route-stop/2008290/20016485', // 石田路, 近威裕花園
+                filterRouteSeq: 1, // 往河背
+                dest: '河背'
+            },
+            {
+                type: 'GMB',
+                route: '71',
+                url: 'https://data.etagmb.gov.hk/eta/route-stop/2008290/20016474', // 石田路, 近威裕花園
+                filterRouteSeq: 2, // 往元朗
+                dest: '元朗'
+            },
+            {
+                type: 'GMB',
+                route: '71A',
+                url: 'https://data.etagmb.gov.hk/eta/route-stop/2008388/20016485', // 石田路, 近威裕花園
+                filterRouteSeq: 2, // 往長莆
+                dest: '長莆'
+            },
+            {
+                type: 'GMB',
+                route: '71A',
+                url: 'https://data.etagmb.gov.hk/eta/route-stop/2008388/20016474', // 石田路, 近威裕花園
+                filterRouteSeq: 1, // 往錦上路站
+                dest: '錦上路站'
+            }
+        ];
+
+        // ==========================================
+        // 時鐘更新邏輯
+        // ==========================================
+        function updateClock() {
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const timeString = `${hh}:${mm}`;
+            document.querySelectorAll('.clock').forEach(el => el.textContent = timeString);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ==========================================
+        // 巴士與小巴 API 邏輯
+        // ==========================================
+        async function fetchBusData() {
+            try {
+                const promises = BUS_CONFIGS.map(async (config) => {
+                    try {
+                        const response = await fetch(config.url);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const json = await response.json();
+                        if (!json) return null;
+
+                        let etas = [];
+                        if (config.type === 'KMB') {
+                            if (json.data && json.data.length > 0) {
+                                // Filter KMB ETAs for the specific route
+                                const routeData = json.data.filter(item => item.route === config.filterRoute);
+                                etas = routeData.map(item => {
+                                    return {
+                                        time: item.eta,
+                                        remark: item.rmk_tc || '實時預測'
+                                    };
+                                }).filter(item => item.time); // filter out empty times
+                                
+                                // Sort by time
+                                etas.sort((a, b) => new Date(a.time) - new Date(b.time));
+                            }
+                        } else if (config.type === 'GMB') {
+                            if (json.data && json.data.length > 0) {
+                                const routeStop = json.data.find(item => item.route_seq === config.filterRouteSeq);
+                                if (routeStop && routeStop.eta && routeStop.eta.length > 0) {
+                                    etas = routeStop.eta.map(item => {
+                                        return {
+                                            time: item.timestamp,
+                                            remark: '實時預測'
+                                        };
+                                    });
+                                }
+                            }
+                        }
+
+                        return {
+                            route: config.route,
+                            dest: config.dest,
+                            type: config.type,
+                            etas: etas
+                        };
+                    } catch (error) {
+                        console.error(`Error fetching ${config.route} (${config.dest}):`, error);
+                        return {
+                            route: config.route,
+                            dest: config.dest,
+                            type: config.type,
+                            etas: [],
+                            error: true
+                        };
+                    }
+                });
+
+                const settledResults = await Promise.allSettled(promises);
+                const results = settledResults
+                    .filter(r => r.status === 'fulfilled' && r.value)
+                    .map(r => r.value);
+
+                renderBusPanel(results);
+            } catch (error) {
+                console.error('Bus API Error:', error);
+                const panel = document.getElementById('bus-panel');
+                panel.replaceChildren();
+                const errDiv = document.createElement('div');
+                errDiv.className = 'loading';
+                errDiv.textContent = '無法連接巴士資訊';
+                panel.appendChild(errDiv);
+            }
+        }
+
+        function renderBusPanel(results) {
+            const panel = document.getElementById('bus-panel');
+            panel.replaceChildren(); // Safe way to clear
+
+            if (results.length === 0) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'loading';
+                emptyDiv.textContent = '暫無巴士班次資料';
+                panel.appendChild(emptyDiv);
+                return;
+            }
+
+            const busListDiv = document.createElement('div');
+            busListDiv.className = 'bus-list';
+
+            results.forEach(item => {
+                const busRowDiv = document.createElement('div');
+                busRowDiv.className = 'bus-row';
+
+                const routeContainer = document.createElement('div');
+                routeContainer.className = 'bus-route-container';
+
+                const routeDiv = document.createElement('div');
+                routeDiv.className = 'bus-route';
+                routeDiv.textContent = item.route;
+
+                const destDiv = document.createElement('div');
+                destDiv.className = 'bus-dest';
+                destDiv.textContent = `往 ${item.dest}`;
+
+                routeContainer.appendChild(routeDiv);
+                routeContainer.appendChild(destDiv);
+                busRowDiv.appendChild(routeContainer);
+
+                const etasDiv = document.createElement('div');
+                etasDiv.className = 'bus-etas';
+
+                // Display up to 3 ETAs, padded with empty items if less than 3
+                for (let i = 0; i < 3; i++) {
+                    const etaItemDiv = document.createElement('div');
+                    etaItemDiv.className = 'eta-item';
+
+                    const etaTimeDiv = document.createElement('div');
+                    etaTimeDiv.className = 'eta-time';
+
+                    const etaRemarkDiv = document.createElement('div');
+                    etaRemarkDiv.className = 'eta-remark';
+
+                    const eta = item.etas[i];
+                    if (eta && eta.time) {
+                        const etaDate = new Date(eta.time);
+                        const hh = String(etaDate.getHours()).padStart(2, '0');
+                        const mm = String(etaDate.getMinutes()).padStart(2, '0');
+                        etaTimeDiv.textContent = `${hh}:${mm}`;
+
+                        let displayRemark = '實時預測';
+                        if (eta.remark && eta.remark.includes('原定')) {
+                            displayRemark = '原定班次';
+                        }
+                        etaRemarkDiv.textContent = displayRemark;
+                    } else {
+                        etaTimeDiv.textContent = '--:--';
+                        etaTimeDiv.style.color = 'transparent';
+                        etaRemarkDiv.textContent = '';
+                    }
+
+                    etaItemDiv.appendChild(etaTimeDiv);
+                    etaItemDiv.appendChild(etaRemarkDiv);
+                    etasDiv.appendChild(etaItemDiv);
+                }
+
+                busRowDiv.appendChild(etasDiv);
+                busListDiv.appendChild(busRowDiv);
+            });
+
+            panel.appendChild(busListDiv);
+        }
+
+        // ==========================================
+        // 天氣 API 邏輯 (香港天文台)
+        // ==========================================
+        async function fetchWeatherData() {
+            try {
+                const response = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // 提取所需資料
+                const temp = data.temperature.data[0].value;
+                const tempPlace = data.temperature.data[0].place;
+                const humidity = data.humidity.data[0].value;
+                const uv = data.uvindex ? data.uvindex.data[0].value : '--';
+                const rain = data.rainfall.data[0].max;
+                
+                // 處理警告訊息
+                let warningText = '無';
+                if (data.warningMessage && data.warningMessage.length > 0) {
+                    warningText = '生效中';
+                }
+
+                renderWeatherPanel({
+                    temp,
+                    tempPlace,
+                    humidity,
+                    uv,
+                    rain,
+                    warningText
+                });
+
+            } catch (error) {
+                console.error('Weather API Error:', error);
+                const panel = document.getElementById('weather-panel');
+                panel.replaceChildren();
+                const errDiv = document.createElement('div');
+                errDiv.className = 'loading';
+                errDiv.textContent = '無法連接天氣資訊';
+                panel.appendChild(errDiv);
+            }
+        }
+
+        function renderWeatherPanel(weatherData) {
+            const panel = document.getElementById('weather-panel');
+            panel.replaceChildren();
+
+            const weatherListDiv = document.createElement('div');
+            weatherListDiv.className = 'weather-list';
+
+            const rows = [
+                { label: `氣溫 (${weatherData.tempPlace})`, value: weatherData.temp, unit: '°C' },
+                { label: '相對濕度', value: weatherData.humidity, unit: '%' },
+                { label: '紫外線指數', value: weatherData.uv, unit: '指數' },
+                { label: '最高雨量', value: weatherData.rain, unit: 'mm' },
+                { label: '天氣警告', value: weatherData.warningText, unit: '狀態', isWarning: true }
+            ];
+
+            rows.forEach(rowData => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'weather-row';
+
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'weather-label';
+                labelDiv.textContent = rowData.label;
+
+                const valGroup = document.createElement('div');
+                valGroup.className = 'weather-value-group';
+
+                const valDiv = document.createElement('div');
+                valDiv.className = 'weather-value';
+                valDiv.textContent = rowData.value;
+                if (rowData.isWarning) {
+                    valDiv.style.fontSize = '24px';
+                }
+
+                const unitDiv = document.createElement('div');
+                unitDiv.className = 'weather-unit';
+                unitDiv.textContent = rowData.unit;
+
+                valGroup.appendChild(valDiv);
+                valGroup.appendChild(unitDiv);
+                rowDiv.appendChild(labelDiv);
+                rowDiv.appendChild(valGroup);
+
+                weatherListDiv.appendChild(rowDiv);
+            });
+
+            panel.appendChild(weatherListDiv);
+        }
+
+        // ==========================================
+        // 初始化與定時更新 (每 10 秒更新一次數據)
+        // ==========================================
+        fetchBusData();
+        fetchWeatherData();
+        setInterval(fetchBusData, 10000); 
+        setInterval(fetchWeatherData, 10000);
+
+    </script>
+</body>
+</html>
