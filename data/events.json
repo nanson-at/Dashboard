@@ -1,0 +1,28 @@
+{
+  "events": [
+    {
+      "date": "2026-06-14",
+      "time": "09:30",
+      "title": "上堂 (上課)",
+      "person": "Anson"
+    },
+    {
+      "date": "2026-06-06",
+      "time": "12:00",
+      "title": "屋企整冷氣",
+      "person": "Anson/Nancy"
+    },
+    {
+      "date": "2026-06-06",
+      "time": "13:30",
+      "title": "Nancy去旺角整頭髮",
+      "person": "Nancy"
+    },
+    {
+      "date": "2026-07-10",
+      "time": "10:00",
+      "title": "要學車",
+      "person": "Anson"
+    }
+  ]
+}
