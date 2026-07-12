@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>九巴與活動日曆看板</title>
     <style>
         /* 模擬電子墨水屏 (E-ink) 的基本設定 */
@@ -27,7 +27,9 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            min-height: 100dvh;
             height: 100vh;
+            height: 100dvh;
             box-sizing: border-box;
             overflow: hidden;
         }
@@ -245,6 +247,146 @@
             font-size: 18px;
             color: var(--light-text);
         }
+    
+        /* ========== Mobile / Responsive ========== */
+        html {
+            -webkit-text-size-adjust: 100%;
+            height: 100%;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                height: auto;
+                min-height: 100vh;
+                min-height: 100dvh;
+                overflow: auto;
+                padding: 8px;
+                align-items: flex-start;
+            }
+
+            .device-frame {
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+                min-height: calc(100dvh - 16px);
+                max-height: none;
+            }
+
+            .content {
+                flex-direction: column;
+                padding: 12px;
+                gap: 12px;
+                overflow: visible;
+            }
+
+            .panel-divider {
+                width: 100%;
+                height: 2px;
+                background: repeating-linear-gradient(
+                    to right,
+                    transparent,
+                    transparent 4px,
+                    var(--border-color) 4px,
+                    var(--border-color) 8px
+                );
+            }
+
+            .panel {
+                overflow: visible;
+                min-height: auto;
+            }
+
+            .bus-list, .events-list {
+                overflow: visible;
+            }
+
+            .bus-route {
+                font-size: 16px;
+            }
+
+            .eta-time {
+                font-size: 18px;
+            }
+
+            .event-title {
+                font-size: 15px;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 6px;
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .footer-section {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .footer-weather {
+                max-width: 78%;
+                font-size: 11px;
+                white-space: normal;
+                line-height: 1.3;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bus-row {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .bus-route-container {
+                width: 70px;
+                margin-right: 8px;
+            }
+
+            .bus-etas {
+                width: 100%;
+            }
+
+            .eta-time {
+                font-size: 16px;
+            }
+
+            .events-header {
+                font-size: 16px;
+            }
+
+            .event-date {
+                min-width: 60px;
+                font-size: 13px;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 500px) {
+            body {
+                overflow: auto;
+                height: auto;
+            }
+
+            .device-frame {
+                height: auto;
+                min-height: 90vh;
+                max-height: none;
+            }
+
+            .content {
+                flex-direction: row;
+            }
+
+            .panel-divider {
+                width: 2px;
+                height: auto;
+            }
+        }
+
     </style>
 </head>
 <body>
