@@ -735,9 +735,9 @@
         // 初始化與定時更新
         // ==========================================
                 // ==========================================
-        // 右下角天氣：石崗 / 元朗一帶 + 約2小時雨勢提示
+        // 右下角天氣：石崗一帶 + 未來約2小時預測（不顯示過去雨量）
         // ==========================================
-        function pickPlace(list, names, valueKey) {
+        function pickPlace(list, names) {
             if (!list || !list.length) return null;
             for (const n of names) {
                 const hit = list.find(x => (x.place || x.automaticWeatherStation || '').includes(n));
@@ -746,31 +746,51 @@
             return null;
         }
 
-        function rainTrendFromText(text) {
-            if (!text) return '未有明確雨勢資料';
-            const t = text;
-            if (/暴雨|大雨|雷暴雨|狂風雷暴/.test(t)) return '兩小時內可能有大雨/雷暴';
-            if (/驟雨|幾陣雨|有雨|雷暴/.test(t)) return '兩小時內有機會落雨';
-            if (/天晴|大致天晴|陽光/.test(t) && !/驟雨|有雨/.test(t)) return '兩小時內落雨機會較低';
-            return '請留意：' + t.slice(0, 28);
+        function buildTwoHourForecast(flw, warnsum, warningMessages) {
+            const forecastText = (flw && (flw.forecastDesc || '')) || '';
+            const outlook = (flw && (flw.outlook || '')) || '';
+            const text = forecastText + ' ' + outlook;
+
+            let rainHint = '未來兩小時落雨機會較低';
+            if (warnsum && (warnsum.WRAIN || warnsum.WTS)) {
+                rainHint = '未來兩小時可能有雨/雷暴（警告生效）';
+            } else if (/暴雨|大雨|狂風雷暴/.test(text)) {
+                rainHint = '未來兩小時可能有大雨/雷暴';
+            } else if (/驟雨|幾陣雨|有雨|雷暴/.test(text)) {
+                rainHint = '未來兩小時有機會落雨';
+            } else if (/天晴|大致天晴|陽光/.test(text) && !/驟雨|有雨|雷暴/.test(text)) {
+                rainHint = '未來兩小時落雨機會較低';
+            }
+
+            // 簡短天氣描述（截取預報重點）
+            let shortDesc = forecastText || outlook || '未有預報';
+            shortDesc = shortDesc.replace(/\s+/g, ' ').trim();
+            if (shortDesc.length > 36) shortDesc = shortDesc.slice(0, 36) + '…';
+
+            let warns = [];
+            if (warningMessages && warningMessages.length > 0) warns.push('警告');
+            if (warnsum) {
+                if (warnsum.WRAIN) warns.push('暴雨');
+                if (warnsum.WTS) warns.push('雷暴');
+                if (warnsum.WHOT) warns.push('酷熱');
+            }
+            return { rainHint, shortDesc, warnStr: warns.length ? (' · ' + warns.join('/')) : '' };
         }
 
         async function fetchWeatherFooter() {
             try {
-                const [rhrRes, hourRes, flwRes, warnRes] = await Promise.all([
+                const [rhrRes, flwRes, warnRes] = await Promise.all([
                     fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc'),
-                    fetch('https://data.weather.gov.hk/weatherAPI/opendata/hourlyRainfall.php?lang=tc'),
                     fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=flw&lang=tc'),
                     fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=tc')
                 ]);
                 if (!rhrRes.ok) throw new Error('rhrread HTTP ' + rhrRes.status);
 
                 const data = await rhrRes.json();
-                const hourly = hourRes.ok ? await hourRes.json() : null;
                 const flw = flwRes.ok ? await flwRes.json() : null;
                 const warnsum = warnRes.ok ? await warnRes.json() : null;
 
-                // 氣溫：石崗附近無站，優先元朗公園 / 流浮山
+                // 現況氣溫：石崗附近優先元朗公園
                 const tempHit = pickPlace(
                     (data.temperature && data.temperature.data) || [],
                     ['元朗公園', '流浮山', '荃灣可觀', '屯門', '香港天文台']
@@ -778,55 +798,20 @@
                 const temp = tempHit ? tempHit.value : '--';
                 const place = tempHit ? tempHit.place : '新界西';
 
-                // 濕度（全港通常只有天文台）
                 const humidity = data.humidity && data.humidity.data && data.humidity.data[0]
                     ? data.humidity.data[0].value : '--';
 
-                // 過去1小時雨量：優先石崗自動站，否則元朗區
-                let rain1h = '--';
-                let rainLabel = '石崗';
-                if (hourly && hourly.hourlyRainfall) {
-                    const sk = hourly.hourlyRainfall.find(x => (x.automaticWeatherStation || '').includes('石崗'));
-                    if (sk && sk.value !== undefined && sk.value !== 'M' && sk.value !== '') {
-                        rain1h = sk.value;
-                        rainLabel = '石崗';
-                    } else {
-                        const yl = hourly.hourlyRainfall.find(x => (x.automaticWeatherStation || '').includes('上水') || (x.automaticWeatherStation || '').includes('流浮山'));
-                        if (yl && yl.value !== undefined && yl.value !== 'M') {
-                            rain1h = yl.value;
-                            rainLabel = yl.automaticWeatherStation;
-                        }
-                    }
-                }
-                if (rain1h === '--' && data.rainfall && data.rainfall.data) {
-                    const dist = pickPlace(data.rainfall.data, ['元朗', '北區', '荃灣']);
-                    if (dist) {
-                        rain1h = dist.max;
-                        rainLabel = dist.place + '區';
-                    }
-                }
-
-                // 約2小時趨勢：用本港天氣預報文字（天文台公開API無精確石崗2小時網格簡易JSON）
-                const forecastText = (flw && (flw.forecastDesc || flw.outlook)) || '';
-                let trend = rainTrendFromText(forecastText);
-
-                // 警告補充
-                let warnBits = [];
-                if (data.warningMessage && data.warningMessage.length > 0) warnBits.push('警告生效');
-                if (warnsum) {
-                    if (warnsum.WRAIN) warnBits.push('暴雨警告');
-                    if (warnsum.WTS) warnBits.push('雷暴警告');
-                    if (warnsum.WHOT) warnBits.push('酷熱');
-                }
-                if (warnBits.some(x => x.includes('暴雨') || x.includes('雷暴'))) {
-                    trend = '短期或有雨/雷暴（已有警告）';
-                }
-                const warnStr = warnBits.length ? (' · ' + warnBits.join('/')) : '';
+                const fc = buildTwoHourForecast(
+                    flw,
+                    warnsum,
+                    data.warningMessage || []
+                );
 
                 const el = document.getElementById('footer-weather');
                 if (el) {
-                    el.textContent = `石崗一帶 ${temp}°C(${place}) · 濕度${humidity}% · 過去1h雨量 ${rain1h}mm(${rainLabel}) · ${trend}${warnStr}`;
-                    el.title = forecastText || '';
+                    // 不顯示過去雨量，只顯示現況 + 未來兩小時預測
+                    el.textContent = `石崗一帶 ${temp}°C(${place}) · 濕度${humidity}% · ${fc.rainHint} · ${fc.shortDesc}${fc.warnStr}`;
+                    el.title = (flw && (flw.forecastDesc || flw.outlook)) || '';
                 }
             } catch (error) {
                 console.error('Weather footer error:', error);
@@ -834,7 +819,6 @@
                 if (el) el.textContent = '天氣暫時無法載入';
             }
         }
-
 
         fetchBusData();
         fetchEventsData();
