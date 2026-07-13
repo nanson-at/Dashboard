@@ -733,7 +733,7 @@
         // 初始化與定時更新
         // ==========================================
                 // ==========================================
-        // 右下角天氣：石崗一帶 + 未來約2小時預測（不顯示過去雨量）
+        // 右下角天氣：石崗一帶 + 短時預測（幾分鐘/1分鐘內，不顯示過去雨量）
         // ==========================================
         function pickPlace(list, names) {
             if (!list || !list.length) return null;
@@ -744,20 +744,20 @@
             return null;
         }
 
-        function buildTwoHourForecast(flw, warnsum, warningMessages) {
+        function buildShortForecast(flw, warnsum, warningMessages) {
             const forecastText = (flw && (flw.forecastDesc || '')) || '';
             const outlook = (flw && (flw.outlook || '')) || '';
             const text = forecastText + ' ' + outlook;
 
-            let rainHint = '未來兩小時落雨機會較低';
+            let rainHint = '1分鐘內落雨機會較低';
             if (warnsum && (warnsum.WRAIN || warnsum.WTS)) {
-                rainHint = '未來兩小時可能有雨/雷暴（警告生效）';
+                rainHint = '幾分鐘內可能有雨/雷暴（警告生效）';
             } else if (/暴雨|大雨|狂風雷暴/.test(text)) {
-                rainHint = '未來兩小時可能有大雨/雷暴';
+                rainHint = '幾分鐘內可能有大雨/雷暴';
             } else if (/驟雨|幾陣雨|有雨|雷暴/.test(text)) {
-                rainHint = '未來兩小時有機會落雨';
+                rainHint = '幾分鐘內有機會落雨';
             } else if (/天晴|大致天晴|陽光/.test(text) && !/驟雨|有雨|雷暴/.test(text)) {
-                rainHint = '未來兩小時落雨機會較低';
+                rainHint = '1分鐘內落雨機會較低';
             }
 
             // 簡短天氣描述（截取預報重點）
@@ -799,7 +799,7 @@
                 const humidity = data.humidity && data.humidity.data && data.humidity.data[0]
                     ? data.humidity.data[0].value : '--';
 
-                const fc = buildTwoHourForecast(
+                const fc = buildShortForecast(
                     flw,
                     warnsum,
                     data.warningMessage || []
@@ -807,7 +807,7 @@
 
                 const el = document.getElementById('footer-weather');
                 if (el) {
-                    // 不顯示過去雨量，只顯示現況 + 未來兩小時預測
+                    // 不顯示過去雨量，只顯示現況 + 短時（幾分鐘/1分鐘）預測
                     el.textContent = `石崗一帶 ${temp}°C(${place}) · 濕度${humidity}% · ${fc.rainHint} · ${fc.shortDesc}${fc.warnStr}`;
                     el.title = (flw && (flw.forecastDesc || flw.outlook)) || '';
                 }
@@ -823,7 +823,7 @@
         fetchWeatherFooter();
         setInterval(fetchBusData, 10000);
         setInterval(fetchEventsData, 60000);
-        setInterval(fetchWeatherFooter, 60000);
+        setInterval(fetchWeatherFooter, 60000); // 每1分鐘更新天氣
 
 
     </script>
