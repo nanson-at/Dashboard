@@ -146,9 +146,10 @@
         }
 
         .eta-time {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
-            letter-spacing: 1px;
+            letter-spacing: 0;
+            white-space: nowrap;
         }
 
         .eta-remark {
@@ -617,17 +618,33 @@
                     const eta = item.etas[i];
                     if (eta && eta.time) {
                         const etaDate = new Date(eta.time);
+                        const now = new Date();
+                        let diffMin = Math.round((etaDate - now) / 60000);
+
+                        // 顯示「幾分鐘內 / X分鐘」為主，鐘面時間作備註
+                        let mainText = '';
+                        if (Number.isNaN(diffMin)) {
+                            mainText = '--';
+                        } else if (diffMin <= 0) {
+                            mainText = '即將到';
+                        } else if (diffMin === 1) {
+                            mainText = '1分鐘內';
+                        } else if (diffMin <= 3) {
+                            mainText = `${diffMin}分鐘內`;
+                        } else {
+                            mainText = `${diffMin}分鐘`;
+                        }
+                        etaTimeDiv.textContent = mainText;
+
                         const hh = String(etaDate.getHours()).padStart(2, '0');
                         const mm = String(etaDate.getMinutes()).padStart(2, '0');
-                        etaTimeDiv.textContent = `${hh}:${mm}`;
-
-                        let displayRemark = '實時預測';
+                        let displayRemark = `${hh}:${mm}`;
                         if (eta.remark && eta.remark.includes('原定')) {
-                            displayRemark = '原定班次';
+                            displayRemark = `原定 ${hh}:${mm}`;
                         }
                         etaRemarkDiv.textContent = displayRemark;
                     } else {
-                        etaTimeDiv.textContent = '--:--';
+                        etaTimeDiv.textContent = '--';
                         etaTimeDiv.style.color = 'transparent';
                         etaRemarkDiv.textContent = '';
                     }
