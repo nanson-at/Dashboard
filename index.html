@@ -750,7 +750,7 @@
         // 初始化與定時更新
         // ==========================================
                 // ==========================================
-        // 右下角天氣：石崗一帶 + 短時預測（幾分鐘/1分鐘內，不顯示過去雨量）
+        // 右下角天氣：石崗現況（溫度/濕度）+ 石崗一帶2小時預測
         // ==========================================
         function pickPlace(list, names) {
             if (!list || !list.length) return null;
@@ -761,26 +761,26 @@
             return null;
         }
 
-        function buildShortForecast(flw, warnsum, warningMessages) {
+        function buildShekKongTwoHourForecast(flw, warnsum, warningMessages) {
             const forecastText = (flw && (flw.forecastDesc || '')) || '';
             const outlook = (flw && (flw.outlook || '')) || '';
-            const text = forecastText + ' ' + outlook;
+            const period = (flw && (flw.forecastPeriod || '')) || '';
+            const text = (forecastText + ' ' + outlook).trim();
 
-            let rainHint = '1分鐘內落雨機會較低';
+            let rainHint = '石崗2小時內落雨機會較低';
             if (warnsum && (warnsum.WRAIN || warnsum.WTS)) {
-                rainHint = '幾分鐘內可能有雨/雷暴（警告生效）';
+                rainHint = '石崗2小時內可能有雨/雷暴（警告生效）';
             } else if (/暴雨|大雨|狂風雷暴/.test(text)) {
-                rainHint = '幾分鐘內可能有大雨/雷暴';
+                rainHint = '石崗2小時內可能有大雨/雷暴';
             } else if (/驟雨|幾陣雨|有雨|雷暴/.test(text)) {
-                rainHint = '幾分鐘內有機會落雨';
+                rainHint = '石崗2小時內有機會落雨';
             } else if (/天晴|大致天晴|陽光/.test(text) && !/驟雨|有雨|雷暴/.test(text)) {
-                rainHint = '1分鐘內落雨機會較低';
+                rainHint = '石崗2小時內落雨機會較低';
             }
 
-            // 簡短天氣描述（截取預報重點）
             let shortDesc = forecastText || outlook || '未有預報';
             shortDesc = shortDesc.replace(/\s+/g, ' ').trim();
-            if (shortDesc.length > 36) shortDesc = shortDesc.slice(0, 36) + '…';
+            if (shortDesc.length > 40) shortDesc = shortDesc.slice(0, 40) + '…';
 
             let warns = [];
             if (warningMessages && warningMessages.length > 0) warns.push('警告');
@@ -789,7 +789,13 @@
                 if (warnsum.WTS) warns.push('雷暴');
                 if (warnsum.WHOT) warns.push('酷熱');
             }
-            return { rainHint, shortDesc, warnStr: warns.length ? (' · ' + warns.join('/')) : '' };
+            return {
+                rainHint,
+                shortDesc,
+                period,
+                warnStr: warns.length ? (' · ' + warns.join('/')) : '',
+                fullText: text
+            };
         }
 
         async function fetchWeatherFooter() {
@@ -805,18 +811,23 @@
                 const flw = flwRes.ok ? await flwRes.json() : null;
                 const warnsum = warnRes.ok ? await warnRes.json() : null;
 
-                // 現況氣溫：石崗附近優先元朗公園
+                // 石崗無獨立氣溫站：用最近新界西站（優先元朗公園）代表石崗現況
                 const tempHit = pickPlace(
                     (data.temperature && data.temperature.data) || [],
-                    ['元朗公園', '流浮山', '荃灣可觀', '屯門', '香港天文台']
+                    ['元朗公園', '流浮山', '屯門', '荃灣可觀', '大埔', '香港天文台']
                 );
                 const temp = tempHit ? tempHit.value : '--';
-                const place = tempHit ? tempHit.place : '新界西';
+                const tempStation = tempHit ? tempHit.place : '新界西';
 
-                const humidity = data.humidity && data.humidity.data && data.humidity.data[0]
-                    ? data.humidity.data[0].value : '--';
+                // 濕度：公開 rhrread 多數只有香港天文台；仍顯示作現況濕度參考
+                const humHit = pickPlace(
+                    (data.humidity && data.humidity.data) || [],
+                    ['石崗', '元朗', '流浮山', '香港天文台']
+                ) || ((data.humidity && data.humidity.data && data.humidity.data[0]) || null);
+                const humidity = humHit ? humHit.value : '--';
+                const humStation = humHit ? (humHit.place || '香港天文台') : '';
 
-                const fc = buildShortForecast(
+                const fc = buildShekKongTwoHourForecast(
                     flw,
                     warnsum,
                     data.warningMessage || []
@@ -824,9 +835,17 @@
 
                 const el = document.getElementById('footer-weather');
                 if (el) {
-                    // 不顯示過去雨量，只顯示現況 + 短時（幾分鐘/1分鐘）預測
-                    el.textContent = `石崗一帶 ${temp}°C(${place}) · 濕度${humidity}% · ${fc.rainHint} · ${fc.shortDesc}${fc.warnStr}`;
-                    el.title = (flw && (flw.forecastDesc || flw.outlook)) || '';
+                    // 現況：溫度(近石崗站) + 濕度；預測：石崗2小時內
+                    el.textContent =
+                        `石崗現況 ${temp}°C（${tempStation}）· 濕度 ${humidity}%` +
+                        (humStation && humStation !== tempStation ? `（${humStation}）` : '') +
+                        ` · ${fc.rainHint} · ${fc.shortDesc}${fc.warnStr}`;
+                    el.title = [
+                        '溫度參考站：' + tempStation + '（石崗附近）',
+                        humStation ? ('濕度參考站：' + humStation) : '',
+                        fc.period || '',
+                        fc.fullText || ''
+                    ].filter(Boolean).join('\n');
                 }
             } catch (error) {
                 console.error('Weather footer error:', error);
