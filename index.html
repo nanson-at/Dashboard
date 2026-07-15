@@ -857,7 +857,7 @@
         fetchBusData();
         fetchEventsData();
         fetchWeatherFooter();
-        setInterval(fetchBusData, 10000);
+        setInterval(fetchBusData, 60000); // 每1分鐘更新巴士
         setInterval(fetchEventsData, 60000);
         setInterval(fetchWeatherFooter, 60000); // 每1分鐘更新天氣
 
