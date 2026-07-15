@@ -7,29 +7,31 @@
 <style>
   html,body{margin:0;padding:0;background:#fff;color:#4a3f55;
     font-family:"Segoe UI","Microsoft YaHei","Yu Gothic",sans-serif;}
-  .wrap{padding:14px;min-height:100vh;background:#fff;}
-  .hero{display:flex;align-items:center;gap:12px;
+  .wrap{padding:10px 12px 12px;min-height:100vh;background:#fff;}
+  .hero{display:flex;align-items:center;gap:10px;
     background:linear-gradient(135deg,#fff9fc,#ffe8f2 60%,#fff4d6);
-    border:3px solid #ffb3cf;border-radius:22px;padding:10px 12px;
-    box-shadow:0 7px 0 #f5a3c4;margin-bottom:12px;}
-  .avatar{width:78px;height:78px;border-radius:50%;object-fit:cover;
-    border:3px solid #fff;box-shadow:0 0 0 3px #ffb3cf,0 5px 0 #f0a0c0;background:#6f8f8d;}
-  h1{margin:0;font-size:24px;font-weight:800;color:#d4497d;
+    border:3px solid #ffb3cf;border-radius:18px;padding:8px 10px;
+    box-shadow:0 5px 0 #f5a3c4;margin-bottom:10px;}
+  .avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;
+    border:3px solid #fff;box-shadow:0 0 0 3px #ffb3cf,0 4px 0 #f0a0c0;background:#6f8f8d;}
+  h1{margin:0;font-size:22px;font-weight:800;color:#d4497d;
     text-shadow:1px 1px 0 #fff,2px 2px 0 #ffd0e2;}
-  table{width:100%;border-collapse:collapse;background:#fffdf9;
-    border:3px solid #ffc2d9;border-radius:18px;overflow:hidden;
-    box-shadow:0 7px 0 #f0b4cc;}
-  th,td{padding:11px 8px;text-align:left;font-size:16px;border-bottom:1px dashed #f0cfe0;}
-  th{background:linear-gradient(180deg,#ff9ec4,#ff7eb0);color:#fff;font-size:14px;font-weight:800;}
-  tr:nth-child(odd) td{background:#fff7fb;}
-  tr:nth-child(even) td{background:#f7fff9;}
-  .type{width:12%;color:#888;font-size:12px;}
-  .route{width:14%;font-weight:800;font-size:20px;color:#6b4f8a;}
-  .dest{width:28%;}
-  .eta{width:46%;font-weight:800;font-size:22px;letter-spacing:1px;color:#2f9e6b;}
-  .foot{margin-top:12px;border:3px solid #ffc2d9;border-radius:16px;padding:10px 12px;
-    background:linear-gradient(90deg,#fff9fc,#f7fff9);display:flex;justify-content:space-between;gap:10px;font-size:14px;}
-  .clock{font-size:22px;font-weight:800;color:#d4497d;white-space:nowrap;}
+  .grid{display:flex;gap:10px;align-items:stretch;}
+  .col{flex:1;min-width:0;
+    background:#fffdf9;border:3px solid #ffc2d9;border-radius:16px;
+    box-shadow:0 5px 0 #f0b4cc;padding:6px 8px;}
+  .row{display:grid;grid-template-columns:52px 1fr;
+    grid-template-rows:auto auto;column-gap:6px;row-gap:1px;
+    padding:7px 4px;border-bottom:1px dashed #f0cfe0;}
+  .row:last-child{border-bottom:none;}
+  .row:nth-child(odd){background:#fff7fb;}
+  .row:nth-child(even){background:#f7fff9;}
+  .route{grid-row:1 / span 2;align-self:center;font-weight:800;font-size:20px;color:#6b4f8a;}
+  .dest{font-size:13px;color:#666;}
+  .eta{font-weight:800;font-size:17px;letter-spacing:0.5px;color:#2f9e6b;}
+  .foot{margin-top:10px;border:3px solid #ffc2d9;border-radius:14px;padding:8px 10px;
+    background:linear-gradient(90deg,#fff9fc,#f7fff9);display:flex;justify-content:space-between;gap:8px;font-size:13px;}
+  .clock{font-size:20px;font-weight:800;color:#d4497d;white-space:nowrap;}
 </style>
 </head><body>
 <div class="wrap">
@@ -37,15 +39,13 @@
     <img class="avatar" src="./images/usagyuun.png" alt="usagyuun">
     <h1>✧ 巴士 / 小巴到站 ✦</h1>
   </div>
-  <table>
-    <thead><tr><th>類型</th><th>路線</th><th>方向</th><th>預測到站時間</th></tr></thead>
-    <tbody>
-      <tr><td class='type'>KMB</td><td class='route'>251A</td><td class='dest'>上村</td><td class='eta'>00:34　01:03</td></tr><tr><td class='type'>KMB</td><td class='route'>64K</td><td class='dest'>大埔墟站</td><td class='eta'>00:34</td></tr><tr><td class='type'>KMB</td><td class='route'>64K</td><td class='dest'>元朗(西)</td><td class='eta'>00:27　00:46</td></tr><tr><td class='type'>GMB</td><td class='route'>71</td><td class='dest'>河背</td><td class='eta'>暫無班次</td></tr><tr><td class='type'>GMB</td><td class='route'>71</td><td class='dest'>元朗</td><td class='eta'>暫無班次</td></tr><tr><td class='type'>GMB</td><td class='route'>71A</td><td class='dest'>長莆</td><td class='eta'>暫無班次</td></tr><tr><td class='type'>GMB</td><td class='route'>71A</td><td class='dest'>錦上路站</td><td class='eta'>暫無班次</td></tr>
-    </tbody>
-  </table>
+  <div class="grid">
+    <div class="col"><div class='row'><div class='route'>251A</div><div class='dest'>上村</div><div class='eta'>00:34　01:03</div></div><div class='row'><div class='route'>64K</div><div class='dest'>大埔墟站</div><div class='eta'>00:34</div></div><div class='row'><div class='route'>64K</div><div class='dest'>元朗(西)</div><div class='eta'>00:46</div></div><div class='row'><div class='route'>71</div><div class='dest'>河背</div><div class='eta'>暫無班次</div></div></div>
+    <div class="col"><div class='row'><div class='route'>71</div><div class='dest'>元朗</div><div class='eta'>暫無班次</div></div><div class='row'><div class='route'>71A</div><div class='dest'>長莆</div><div class='eta'>暫無班次</div></div><div class='row'><div class='route'>71A</div><div class='dest'>錦上路站</div><div class='eta'>暫無班次</div></div></div>
+  </div>
   <div class="foot">
     <div>石崗現況 27°C 元朗公園 · 濕度 89% · 石崗2小時內有機會落雨 · 大致多雲，間中有驟雨及幾陣狂風雷暴。初時雨勢有時頗大。氣溫介乎26至29度。吹和緩南至西南風，離岸風勢間中清勁。</div>
-    <div class="clock">00:27</div>
+    <div class="clock">00:29</div>
   </div>
 </div>
 </body></html>
