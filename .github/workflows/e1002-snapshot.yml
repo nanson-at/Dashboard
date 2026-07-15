@@ -1,10 +1,13 @@
 name: E1002 Snapshot
 
+# DISABLED - kept for later re-enable
 on:
-  schedule:
-    # every 5 minutes (GitHub may delay a few minutes under load)
-    - cron: "*/5 * * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Set true only to run manually while disabled gate is on"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -15,34 +18,25 @@ concurrency:
 
 jobs:
   build:
+    if: false  # fully stopped
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install deps + CJK font
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk
-          python -m pip install --upgrade pip
           pip install requests pillow
-
-      - name: Build e1002.html + e1002.png
+      - name: Build
         run: python scripts/build_e1002.py
-
-      - name: Commit & push if changed
+      - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add e1002.html e1002.png
-          if git diff --staged --quiet; then
-            echo "No changes"
-            exit 0
-          fi
+          if git diff --staged --quiet; then echo "No changes"; exit 0; fi
           git commit -m "chore(e1002): auto snapshot $(date -u +'%Y-%m-%d %H:%M') UTC"
           git push
