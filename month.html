@@ -6,55 +6,130 @@
   <meta http-equiv="Cache-Control" content="no-cache" />
   <title>當月活動</title>
   <style>
+    :root {
+      --bg: #f3f7ff;
+      --card: #ffffff;
+      --ink: #10243e;
+      --muted: #4a6078;
+      --line: #b7c7db;
+      --today: #fff3bf;
+      --today-border: #e6a817;
+      --head: #1e5eff;
+      --row-a: #eef5ff;
+      --row-b: #ffffff;
+      --time: #0b6b3a;
+      --accent: #d9480f;
+    }
     * { box-sizing: border-box; }
     html, body {
       margin: 0; padding: 0;
       width: 100%; min-height: 100%;
-      background: #fff; color: #000;
+      background: linear-gradient(180deg, #dcecff 0%, var(--bg) 40%, #f8fbff 100%);
+      color: var(--ink);
       font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans TC", sans-serif;
     }
-    .wrap { padding: 12px 14px 20px; max-width: 900px; margin: 0 auto; }
+    .wrap {
+      padding: 16px 16px 24px;
+      max-width: 920px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
     .head {
-      display: flex; justify-content: space-between; align-items: baseline;
-      border-bottom: 3px solid #000; padding-bottom: 8px; margin-bottom: 12px;
-      gap: 10px; flex-wrap: wrap;
+      background: linear-gradient(135deg, #1e5eff, #3b82f6 55%, #60a5fa);
+      color: #fff;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 18px rgba(30, 94, 255, 0.25);
     }
-    h1 { margin: 0; font-size: 28px; letter-spacing: 1px; }
-    .sub { font-size: 14px; color: #333; }
-    .nav a {
-      display: inline-block; margin-right: 8px; padding: 4px 10px;
-      border: 2px solid #000; text-decoration: none; color: #000; font-size: 14px;
+    h1 {
+      margin: 0 0 4px;
+      font-size: 28px;
+      letter-spacing: 1px;
+      font-weight: 800;
     }
-    .meta { font-size: 13px; margin-bottom: 10px; color: #222; }
-    .day {
-      border: 2px solid #111; margin: 0 0 10px; padding: 10px 12px;
-      page-break-inside: avoid;
+    .sub { font-size: 14px; opacity: 0.95; }
+    .meta {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: var(--muted);
+      padding: 0 4px;
     }
-    .day.today { background: #ffe8a0; }
-    .day-head {
-      font-size: 18px; font-weight: 700; margin-bottom: 6px;
-      border-bottom: 1px solid #666; padding-bottom: 4px;
+    .table-wrap {
+      background: var(--card);
+      border: 2px solid #7aa2ff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(16, 36, 62, 0.08);
     }
-    .item { font-size: 17px; padding: 4px 0; line-height: 1.35; }
-    .time { font-weight: 700; margin-right: 8px; min-width: 3.2em; display: inline-block; }
-    .person { color: #333; font-size: 14px; margin-left: 6px; }
-    .empty { font-size: 18px; padding: 24px 8px; border: 2px dashed #666; text-align: center; }
-    .err { color: #000; border: 2px solid #000; padding: 12px; font-size: 16px; }
-    /* e-ink: avoid thin gray text */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    thead th {
+      background: linear-gradient(180deg, #2563eb, #1d4ed8);
+      color: #fff;
+      font-size: 15px;
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 2px solid #163d9c;
+    }
+    tbody td {
+      padding: 11px 10px;
+      font-size: 16px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+    tbody tr:nth-child(odd) { background: var(--row-a); }
+    tbody tr:nth-child(even) { background: var(--row-b); }
+    tbody tr.today {
+      background: var(--today) !important;
+      box-shadow: inset 4px 0 0 var(--today-border);
+    }
+    tbody tr.today td { font-weight: 600; }
+    .col-date { width: 28%; color: #1e3a5f; font-weight: 700; }
+    .col-time { width: 16%; color: var(--time); font-weight: 800; }
+    .col-title { width: 36%; }
+    .col-person { width: 20%; color: var(--accent); font-weight: 600; }
+    .badge-today {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: #e6a817;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+    .empty, .err {
+      margin-top: 8px;
+      padding: 28px 16px;
+      text-align: center;
+      font-size: 18px;
+      border-radius: 14px;
+      border: 2px dashed #7aa2ff;
+      background: #fff;
+      color: var(--ink);
+    }
+    .err { border-color: #e03131; background: #fff5f5; }
     @media (max-width: 600px) {
       h1 { font-size: 22px; }
-      .item { font-size: 16px; }
+      thead th, tbody td { font-size: 14px; padding: 9px 7px; }
+      .col-date { width: 30%; }
+      .col-time { width: 18%; }
+      .col-title { width: 32%; }
+      .col-person { width: 20%; }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="head">
-      <div>
-        <h1 id="title">當月活動</h1>
-        <div class="sub" id="range"></div>
-      </div>
-      <div class="nav" id="nav"></div>
+      <h1 id="title">當月活動</h1>
+      <div class="sub" id="range"></div>
     </div>
     <div class="meta" id="meta">載入中…</div>
     <div id="list"></div>
@@ -62,14 +137,14 @@
 
   <script>
     // Params:
-    //   ?ym=2026-07          (recommended)
+    //   ?ym=2026-07
     //   ?year=2026&month=7
-    //   ?offset=0            (0=this month, -1=last, 1=next)
-    //   ?person=Anson        (optional filter)
+    //   ?offset=0
+    //   ?person=Anson
     //   ?src=./data/events.json
-    // Example device URL:
+    // Device:
+    //   https://nanson-at.github.io/Dashboard/month.html
     //   https://nanson-at.github.io/Dashboard/month.html?ym=2026-07
-    //   https://nanson-at.github.io/Dashboard/month.html  (auto current month)
 
     function pad(n) { return String(n).padStart(2, '0'); }
 
@@ -77,7 +152,7 @@
       const p = new URLSearchParams(location.search);
       const now = new Date();
       let year = now.getFullYear();
-      let month = now.getMonth() + 1; // 1-12
+      let month = now.getMonth() + 1;
 
       if (p.get('ym')) {
         const m = p.get('ym').match(/^(\d{4})-(\d{1,2})$/);
@@ -107,11 +182,7 @@
       const start = `${year}-${pad(month)}-01`;
       const last = new Date(year, month, 0).getDate();
       const end = `${year}-${pad(month)}-${pad(last)}`;
-      return { start, end, last };
-    }
-
-    function ymString(year, month) {
-      return `${year}-${pad(month)}`;
+      return { start, end };
     }
 
     function weekdayZh(dateStr) {
@@ -125,33 +196,19 @@
       return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
     }
 
-    function buildNav(year, month) {
-      const prev = new Date(year, month - 2, 1);
-      const next = new Date(year, month, 1);
-      const prevYm = ymString(prev.getFullYear(), prev.getMonth() + 1);
-      const nextYm = ymString(next.getFullYear(), next.getMonth() + 1);
-      const curYm = ymString(year, month);
-      const person = new URLSearchParams(location.search).get('person');
-      const q = (ym) => {
-        let s = `?ym=${ym}`;
-        if (person) s += `&person=${encodeURIComponent(person)}`;
-        return s;
-      };
-      document.getElementById('nav').innerHTML =
-        `<a href="${q(prevYm)}">‹ 上月</a>` +
-        `<a href="?">本月</a>` +
-        `<a href="${q(nextYm)}">下月 ›</a>`;
-      // keep cur in title data
-      document.getElementById('title').dataset.ym = curYm;
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
     async function main() {
       const cfg = parseParams();
       const { start, end } = monthRange(cfg.year, cfg.month);
-      const ym = ymString(cfg.year, cfg.month);
       document.getElementById('title').textContent = `${cfg.year}年${cfg.month}月 活動`;
-      document.getElementById('range').textContent = `${start} → ${end}`;
-      buildNav(cfg.year, cfg.month);
+      document.getElementById('range').textContent = `${start}  →  ${end}`;
 
       const list = document.getElementById('list');
       const meta = document.getElementById('meta');
@@ -178,45 +235,47 @@
 
         meta.textContent = `共 ${events.length} 項` +
           (cfg.person ? ` · 篩選：${cfg.person}` : '') +
-          ` · 更新顯示：${new Date().toLocaleString('zh-HK')}`;
+          ` · ${new Date().toLocaleString('zh-HK')}`;
 
         if (!events.length) {
           list.innerHTML = `<div class="empty">呢個月暫時冇活動</div>`;
           return;
         }
 
-        // group by date
-        const groups = {};
-        for (const ev of events) {
-          const d = String(ev.date).slice(0, 10);
-          (groups[d] || (groups[d] = [])).push(ev);
-        }
-
         const today = todayStr();
-        const html = Object.keys(groups).sort().map(d => {
-          const items = groups[d].map(ev => {
-            const time = ev.time ? `<span class="time">${escapeHtml(ev.time)}</span>` : `<span class="time">—</span>`;
-            const title = escapeHtml(ev.title || ev.name || '');
-            const person = (ev.person || ev.people || ev.who)
-              ? `<span class="person">${escapeHtml(ev.person || ev.people || ev.who)}</span>` : '';
-            return `<div class="item">${time}${title}${person}</div>`;
-          }).join('');
-          const cls = d === today ? 'day today' : 'day';
-          return `<div class="${cls}"><div class="day-head">${d}（${weekdayZh(d)}）</div>${items}</div>`;
+        const rows = events.map(ev => {
+          const d = String(ev.date || '').slice(0, 10);
+          const isToday = d === today;
+          const dateLabel = `${d}（${weekdayZh(d)}）` + (isToday ? `<span class="badge-today">今日</span>` : '');
+          const time = escapeHtml(ev.time || '—');
+          const title = escapeHtml(ev.title || ev.name || '');
+          const person = escapeHtml(ev.person || ev.people || ev.who || '');
+          return `<tr class="${isToday ? 'today' : ''}">
+            <td class="col-date">${dateLabel}</td>
+            <td class="col-time">${time}</td>
+            <td class="col-title">${title}</td>
+            <td class="col-person">${person}</td>
+          </tr>`;
         }).join('');
-        list.innerHTML = html;
+
+        list.innerHTML = `
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="col-date">日期</th>
+                  <th class="col-time">時間</th>
+                  <th class="col-title">活動</th>
+                  <th class="col-person">人物</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
       } catch (e) {
         meta.textContent = '';
-        list.innerHTML = `<div class="err">無法載入活動：${escapeHtml(String(e.message || e))}<br/>src=${escapeHtml(cfg.src)}</div>`;
+        list.innerHTML = `<div class="err">無法載入活動：${escapeHtml(String(e.message || e))}</div>`;
       }
-    }
-
-    function escapeHtml(s) {
-      return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
     }
 
     main();
