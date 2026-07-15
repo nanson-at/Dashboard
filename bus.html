@@ -42,14 +42,14 @@
   .col{flex:1;min-width:0;
     background:rgba(255,253,249,.88);border:3px solid #ffc2d9;border-radius:18px;
     box-shadow:0 6px 0 #f0b4cc;padding:6px 8px;}
-  .row{display:grid;grid-template-columns:52px 1fr;grid-template-rows:auto auto;
-    column-gap:6px;row-gap:1px;padding:8px 6px;border-bottom:1px dashed #f0cfe0;border-radius:10px;}
+  .row{display:flex;align-items:center;gap:10px;padding:10px 8px;
+    border-bottom:1px dashed #f0cfe0;border-radius:10px;}
   .row:last-child{border-bottom:none;}
   .row:nth-child(odd){background:rgba(255,247,251,.9);}
   .row:nth-child(even){background:rgba(247,255,249,.9);}
-  .route{grid-row:1 / span 2;align-self:center;font-weight:800;font-size:20px;color:#6b4f8a;}
-  .dest{font-size:13px;color:#666;}
-  .eta{font-weight:800;font-size:17px;letter-spacing:0.5px;color:#2f9e6b;}
+  .route{flex:0 0 auto;min-width:3.2em;font-weight:800;font-size:18px;color:#6b4f8a;}
+  .dest{flex:0 0 auto;font-weight:800;font-size:18px;color:#4a3f55;white-space:nowrap;}
+  .eta{flex:1 1 auto;font-weight:800;font-size:18px;letter-spacing:0.5px;color:#2f9e6b;text-align:right;}
   .foot{margin-top:12px;border:3px solid #ffc2d9;border-radius:16px;padding:10px 12px;
     background:linear-gradient(90deg, rgba(255,249,252,.94), rgba(247,255,249,.94));
     display:flex;justify-content:space-between;gap:10px;font-size:13px;
@@ -71,7 +71,7 @@
     </div>
     <div class="foot">
       <div>石崗現況 27°C 元朗公園 · 濕度 89% · 石崗2小時內有機會落雨 · 大致多雲，間中有驟雨及幾陣狂風雷暴。初時雨勢有時頗大。氣溫介乎26至29度。吹和緩南至西南風，離岸風勢間中清勁。</div>
-      <div class="clock">00:38</div>
+      <div class="clock">00:40</div>
     </div>
   </div>
 </div>
