@@ -6,31 +6,21 @@
   <meta http-equiv="Cache-Control" content="no-cache" />
   <title>Usagyuun 當月活動</title>
   <style>
-    :root {
-      --bg1: #b7d8d4;
-      --bg2: #d9ebe8;
-      --card: #fffdf9;
-      --ink: #4a3f55;
-      --pink: #ff8fb7;
-      --line: #f0cfe0;
-    }
     * { box-sizing: border-box; }
     html, body {
-      margin: 0; padding: 0; min-height: 100%;
-      color: var(--ink);
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: #ffffff;
+      color: #4a3f55;
       font-family: "Segoe UI", "Microsoft YaHei", "Yu Gothic", "Noto Sans TC", sans-serif;
-      background:
-        radial-gradient(circle at 12% 18%, #fff7ae55 0 40px, transparent 42px),
-        radial-gradient(circle at 88% 12%, #ffb6d955 0 34px, transparent 36px),
-        radial-gradient(circle at 80% 78%, #cbb8ff44 0 50px, transparent 52px),
-        radial-gradient(circle at 18% 82%, #9cf0c844 0 46px, transparent 48px),
-        linear-gradient(165deg, var(--bg1), var(--bg2) 55%, #eef6f4);
     }
     .wrap {
       max-width: 880px;
       margin: 0 auto;
       padding: 16px 14px 28px;
       min-height: 100vh;
+      background: #ffffff;
     }
     .hero {
       display: flex;
@@ -40,7 +30,7 @@
       border: 3px solid #ffb3cf;
       border-radius: 24px;
       padding: 12px 14px;
-      box-shadow: 0 8px 0 #f5a3c4, 0 12px 24px rgba(90, 60, 90, 0.12);
+      box-shadow: 0 8px 0 #f5a3c4, 0 12px 24px rgba(90, 60, 90, 0.10);
       margin-bottom: 14px;
       position: relative;
       overflow: hidden;
@@ -48,14 +38,15 @@
     .hero::after {
       content: "✦ ✧ ✦";
       position: absolute;
-      right: 14px; top: 8px;
+      right: 14px;
+      top: 8px;
       color: #ffd36b;
       font-size: 14px;
       letter-spacing: 4px;
-      opacity: 0.9;
     }
     .avatar {
-      width: 92px; height: 92px;
+      width: 92px;
+      height: 92px;
       border-radius: 50%;
       background: #6f8f8d;
       border: 3px solid #fff;
@@ -77,25 +68,8 @@
       font-size: 14px;
       color: #7a6688;
     }
-    .bubble {
-      display: inline-block;
-      margin-top: 6px;
-      background: #fff;
-      border: 2px solid #ffc2d9;
-      border-radius: 999px;
-      padding: 3px 10px;
-      font-size: 12px;
-      color: #c44e7f;
-      font-weight: 700;
-    }
-    .meta {
-      text-align: center;
-      font-size: 13px;
-      color: #6d5d7a;
-      margin: 0 0 10px;
-    }
     .table-card {
-      background: var(--card);
+      background: #fffdf9;
       border: 3px solid #ffc2d9;
       border-radius: 22px;
       overflow: hidden;
@@ -114,12 +88,11 @@
       text-align: left;
       padding: 12px 10px;
       border-bottom: 3px solid #f06a9f;
-      letter-spacing: 0.5px;
     }
     tbody td {
       padding: 12px 10px;
       font-size: 15px;
-      border-bottom: 1px dashed var(--line);
+      border-bottom: 1px dashed #f0cfe0;
       vertical-align: middle;
       word-wrap: break-word;
     }
@@ -154,23 +127,9 @@
       border-radius: 22px;
       border: 3px dashed #ffb3cf;
       background: #fff9fc;
-      color: var(--ink);
     }
     .err { border-color: #ff8e8e; background: #fff5f5; }
-    .footer-note {
-      text-align: center;
-      margin-top: 14px;
-      font-size: 12px;
-      color: #7a6688;
-    }
-    .sparkle {
-      display: inline-block;
-      animation: pop 2.4s ease-in-out infinite;
-    }
-    @keyframes pop {
-      0%, 100% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.15); opacity: 1; }
-    }
+    .sparkle { display: inline-block; }
     @media (max-width: 600px) {
       h1 { font-size: 22px; }
       .avatar { width: 76px; height: 76px; }
@@ -185,12 +144,9 @@
       <div class="hero-text">
         <h1><span class="sparkle">✧</span> 當月活動 <span class="sparkle">✦</span></h1>
         <p class="subtitle" id="range"></p>
-        <div class="bubble">うさぎゅーん 陪你看行程 ♡</div>
       </div>
     </div>
-    <div class="meta" id="meta">載入中…</div>
     <div id="list"></div>
-    <div class="footer-note">Usagyuun calendar · soft & cute</div>
   </div>
 
   <script>
@@ -226,21 +182,21 @@
     }
 
     function monthRange(year, month) {
-      const start = `${year}-${pad(month)}-01`;
+      const start = year + '-' + pad(month) + '-01';
       const last = new Date(year, month, 0).getDate();
-      const end = `${year}-${pad(month)}-${pad(last)}`;
-      return { start, end };
+      const end = year + '-' + pad(month) + '-' + pad(last);
+      return { start: start, end: end };
     }
 
     function weekdayZh(dateStr) {
-      const [y, m, d] = dateStr.split('-').map(Number);
-      const w = new Date(y, m - 1, d).getDay();
+      const parts = dateStr.split('-').map(Number);
+      const w = new Date(parts[0], parts[1] - 1, parts[2]).getDay();
       return ['日','一','二','三','四','五','六'][w];
     }
 
     function todayStr() {
       const n = new Date();
-      return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
+      return n.getFullYear() + '-' + pad(n.getMonth()+1) + '-' + pad(n.getDate());
     }
 
     function escapeHtml(s) {
@@ -253,66 +209,52 @@
 
     async function main() {
       const cfg = parseParams();
-      const { start, end } = monthRange(cfg.year, cfg.month);
-      document.getElementById('range').textContent = `${cfg.year}年${cfg.month}月  ·  ${start} → ${end}`;
+      const range = monthRange(cfg.year, cfg.month);
+      document.getElementById('range').textContent = cfg.year + '年' + cfg.month + '月  ·  ' + range.start + ' → ' + range.end;
       const list = document.getElementById('list');
-      const meta = document.getElementById('meta');
 
       try {
-        const res = await fetch(cfg.src + (cfg.src.includes('?') ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
+        const res = await fetch(cfg.src + (cfg.src.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         let events = Array.isArray(data) ? data : (data.events || data.data || []);
-        events = events.filter(ev => {
+        events = events.filter(function(ev) {
           const d = String(ev.date || '').slice(0, 10);
-          if (d < start || d > end) return false;
+          if (d < range.start || d > range.end) return false;
           if (cfg.person) {
             const who = String(ev.person || ev.people || ev.who || '');
-            if (!who.includes(cfg.person)) return false;
+            if (who.indexOf(cfg.person) < 0) return false;
           }
           return true;
         });
-        events.sort((a, b) => (`${a.date||''} ${a.time||''}`).localeCompare(`${b.date||''} ${b.time||''}`));
-
-        meta.textContent = `共 ${events.length} 項可愛行程` +
-          (cfg.person ? ` · ${cfg.person}` : '') +
-          ` · ${new Date().toLocaleString('zh-HK')}`;
+        events.sort(function(a, b) {
+          return (String(a.date||'') + ' ' + String(a.time||'')).localeCompare(String(b.date||'') + ' ' + String(b.time||''));
+        });
 
         if (!events.length) {
-          list.innerHTML = '<div class="empty">這個月暫時沒有活動唷 ✧<br/>うさぎゅーん 先休息一下 ♡</div>';
+          list.innerHTML = '<div class="empty">這個月暫時沒有活動</div>';
           return;
         }
 
         const today = todayStr();
-        const rows = events.map(ev => {
+        const rows = events.map(function(ev) {
           const d = String(ev.date || '').slice(0, 10);
           const isToday = d === today;
-          const dateLabel = `${d.slice(5)}（${weekdayZh(d)}）` + (isToday ? '<span class="badge-today">TODAY</span>' : '');
-          return `<tr class="${isToday ? 'today' : ''}">
-            <td class="col-date">${dateLabel}</td>
-            <td class="col-time">${escapeHtml(ev.time || '—')}</td>
-            <td class="col-title">${escapeHtml(ev.title || ev.name || '')}</td>
-            <td class="col-person">${escapeHtml(ev.person || ev.people || ev.who || '')}</td>
-          </tr>`;
+          const dateLabel = d.slice(5) + '（' + weekdayZh(d) + '）' + (isToday ? '<span class="badge-today">TODAY</span>' : '');
+          return '<tr class="' + (isToday ? 'today' : '') + '">' +
+            '<td class="col-date">' + dateLabel + '</td>' +
+            '<td class="col-time">' + escapeHtml(ev.time || '—') + '</td>' +
+            '<td class="col-title">' + escapeHtml(ev.title || ev.name || '') + '</td>' +
+            '<td class="col-person">' + escapeHtml(ev.person || ev.people || ev.who || '') + '</td>' +
+          '</tr>';
         }).join('');
 
-        list.innerHTML = `
-          <div class="table-card">
-            <table>
-              <thead>
-                <tr>
-                  <th class="col-date">日期</th>
-                  <th class="col-time">時間</th>
-                  <th class="col-title">活動</th>
-                  <th class="col-person">人物</th>
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>`;
+        list.innerHTML =
+          '<div class="table-card"><table><thead><tr>' +
+          '<th class="col-date">日期</th><th class="col-time">時間</th><th class="col-title">活動</th><th class="col-person">人物</th>' +
+          '</tr></thead><tbody>' + rows + '</tbody></table></div>';
       } catch (e) {
-        meta.textContent = '';
-        list.innerHTML = `<div class="err">載入失敗：${escapeHtml(String(e.message || e))}</div>`;
+        list.innerHTML = '<div class="err">載入失敗：' + escapeHtml(String(e.message || e)) + '</div>';
       }
     }
 
