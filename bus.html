@@ -28,14 +28,17 @@
   }
   .wrap{position:relative;z-index:1;padding:12px 14px 14px;max-width:980px;margin:0 auto;}
   .hero{
-    display:flex;align-items:center;gap:12px;
+    display:flex;align-items:center;gap:12px;position:relative;
     background:linear-gradient(135deg, rgba(255,249,252,.92), rgba(255,232,242,.88) 55%, rgba(255,244,214,.9));
-    border:3px solid #ffb3cf;border-radius:22px;padding:10px 14px;
+    border:3px solid #ffb3cf;border-radius:22px;padding:10px 86px 10px 14px;
     box-shadow:0 6px 0 #f5a3c4, 0 12px 24px rgba(90,60,90,.08);
     margin-bottom:12px;
   }
   .avatar{width:68px;height:68px;border-radius:50%;object-fit:cover;
     border:3px solid #fff;box-shadow:0 0 0 3px #ffb3cf,0 4px 0 #f0a0c0;background:#6f8f8d;}
+  .letsgo-badge{position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    width:68px;height:68px;border-radius:50%;object-fit:cover;
+    border:3px solid #fff;box-shadow:0 0 0 3px #ffb3cf,0 4px 0 #f0a0c0;background:#fff;}
   h1{margin:0;font-size:24px;font-weight:800;color:#d4497d;
     text-shadow:1px 1px 0 #fff,2px 2px 0 #ffd0e2;}
   .grid{display:flex;gap:12px;align-items:stretch;}
@@ -64,6 +67,7 @@
     <div class="hero">
       <img class="avatar" src="./images/usagyuun.png" alt="usagyuun">
       <h1>✧ 巴士 / 小巴到站 ✦</h1>
+      <img class="letsgo-badge" src="./images/lets_go_badge.png" alt="lets go">
     </div>
     <div class="grid">
       <div class="col"><div class='row'><div class='route'>251A</div><div class='dest'>上村</div><div class='eta'>01:03　01:28</div></div><div class='row'><div class='route'>64K</div><div class='dest'>大埔墟站</div><div class='eta'>暫無班次</div></div><div class='row'><div class='route'>64K</div><div class='dest'>元朗(西)</div><div class='eta'>00:45</div></div><div class='row'><div class='route'>71</div><div class='dest'>河背</div><div class='eta'>暫無班次</div></div></div>
@@ -71,7 +75,7 @@
     </div>
     <div class="foot">
       <div>石崗現況 27°C 元朗公園 · 濕度 89% · 石崗2小時內有機會落雨 · 大致多雲，間中有驟雨及幾陣狂風雷暴。初時雨勢有時頗大。氣溫介乎26至29度。吹和緩南至西南風，離岸風勢間中清勁。</div>
-      <div class="clock">00:40</div>
+      <div class="clock">00:42</div>
     </div>
   </div>
 </div>
