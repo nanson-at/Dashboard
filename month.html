@@ -4,63 +4,102 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <meta http-equiv="Cache-Control" content="no-cache" />
-  <title>當月活動</title>
+  <title>Usagyuun 當月活動</title>
   <style>
     :root {
-      --bg: #f3f7ff;
-      --card: #ffffff;
-      --ink: #10243e;
-      --muted: #4a6078;
-      --line: #b7c7db;
-      --today: #fff3bf;
-      --today-border: #e6a817;
-      --head: #1e5eff;
-      --row-a: #eef5ff;
-      --row-b: #ffffff;
-      --time: #0b6b3a;
-      --accent: #d9480f;
+      --bg1: #b7d8d4;
+      --bg2: #d9ebe8;
+      --card: #fffdf9;
+      --ink: #4a3f55;
+      --pink: #ff8fb7;
+      --line: #f0cfe0;
     }
     * { box-sizing: border-box; }
     html, body {
-      margin: 0; padding: 0;
-      width: 100%; min-height: 100%;
-      background: linear-gradient(180deg, #dcecff 0%, var(--bg) 40%, #f8fbff 100%);
+      margin: 0; padding: 0; min-height: 100%;
       color: var(--ink);
-      font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans TC", sans-serif;
+      font-family: "Segoe UI", "Microsoft YaHei", "Yu Gothic", "Noto Sans TC", sans-serif;
+      background:
+        radial-gradient(circle at 12% 18%, #fff7ae55 0 40px, transparent 42px),
+        radial-gradient(circle at 88% 12%, #ffb6d955 0 34px, transparent 36px),
+        radial-gradient(circle at 80% 78%, #cbb8ff44 0 50px, transparent 52px),
+        radial-gradient(circle at 18% 82%, #9cf0c844 0 46px, transparent 48px),
+        linear-gradient(165deg, var(--bg1), var(--bg2) 55%, #eef6f4);
     }
     .wrap {
-      padding: 16px 16px 24px;
-      max-width: 920px;
+      max-width: 880px;
       margin: 0 auto;
+      padding: 16px 14px 28px;
       min-height: 100vh;
     }
-    .head {
-      background: linear-gradient(135deg, #1e5eff, #3b82f6 55%, #60a5fa);
-      color: #fff;
-      border-radius: 14px;
-      padding: 16px 18px;
+    .hero {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(135deg, #fff9fc, #ffe8f2 60%, #fff4d6);
+      border: 3px solid #ffb3cf;
+      border-radius: 24px;
+      padding: 12px 14px;
+      box-shadow: 0 8px 0 #f5a3c4, 0 12px 24px rgba(90, 60, 90, 0.12);
       margin-bottom: 14px;
-      box-shadow: 0 6px 18px rgba(30, 94, 255, 0.25);
+      position: relative;
+      overflow: hidden;
     }
+    .hero::after {
+      content: "✦ ✧ ✦";
+      position: absolute;
+      right: 14px; top: 8px;
+      color: #ffd36b;
+      font-size: 14px;
+      letter-spacing: 4px;
+      opacity: 0.9;
+    }
+    .avatar {
+      width: 92px; height: 92px;
+      border-radius: 50%;
+      background: #6f8f8d;
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 3px #ffb3cf, 0 6px 0 #f0a0c0;
+      object-fit: cover;
+      flex: 0 0 auto;
+    }
+    .hero-text { flex: 1; min-width: 0; }
     h1 {
       margin: 0 0 4px;
-      font-size: 28px;
-      letter-spacing: 1px;
+      font-size: 26px;
       font-weight: 800;
+      color: #d4497d;
+      letter-spacing: 0.5px;
+      text-shadow: 1px 1px 0 #fff, 2px 2px 0 #ffd0e2;
     }
-    .sub { font-size: 14px; opacity: 0.95; }
+    .subtitle {
+      margin: 0;
+      font-size: 14px;
+      color: #7a6688;
+    }
+    .bubble {
+      display: inline-block;
+      margin-top: 6px;
+      background: #fff;
+      border: 2px solid #ffc2d9;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 12px;
+      color: #c44e7f;
+      font-weight: 700;
+    }
     .meta {
-      margin: 0 0 12px;
+      text-align: center;
       font-size: 13px;
-      color: var(--muted);
-      padding: 0 4px;
+      color: #6d5d7a;
+      margin: 0 0 10px;
     }
-    .table-wrap {
+    .table-card {
       background: var(--card);
-      border: 2px solid #7aa2ff;
-      border-radius: 14px;
+      border: 3px solid #ffc2d9;
+      border-radius: 22px;
       overflow: hidden;
-      box-shadow: 0 4px 14px rgba(16, 36, 62, 0.08);
+      box-shadow: 0 8px 0 #f0b4cc, 0 14px 24px rgba(80,50,80,0.08);
     }
     table {
       width: 100%;
@@ -68,84 +107,93 @@
       table-layout: fixed;
     }
     thead th {
-      background: linear-gradient(180deg, #2563eb, #1d4ed8);
+      background: linear-gradient(180deg, #ff9ec4, #ff7eb0);
       color: #fff;
       font-size: 15px;
+      font-weight: 800;
       text-align: left;
       padding: 12px 10px;
-      border-bottom: 2px solid #163d9c;
+      border-bottom: 3px solid #f06a9f;
+      letter-spacing: 0.5px;
     }
     tbody td {
-      padding: 11px 10px;
-      font-size: 16px;
-      border-bottom: 1px solid var(--line);
-      vertical-align: top;
+      padding: 12px 10px;
+      font-size: 15px;
+      border-bottom: 1px dashed var(--line);
+      vertical-align: middle;
       word-wrap: break-word;
     }
-    tbody tr:nth-child(odd) { background: var(--row-a); }
-    tbody tr:nth-child(even) { background: var(--row-b); }
+    tbody tr:nth-child(4n+1) { background: #fff7fb; }
+    tbody tr:nth-child(4n+2) { background: #f7fff9; }
+    tbody tr:nth-child(4n+3) { background: #fffced; }
+    tbody tr:nth-child(4n+4) { background: #f7f3ff; }
     tbody tr.today {
-      background: var(--today) !important;
-      box-shadow: inset 4px 0 0 var(--today-border);
+      background: linear-gradient(90deg, #fff2a8, #ffe0f0) !important;
+      box-shadow: inset 5px 0 0 #ff8fb7;
     }
-    tbody tr.today td { font-weight: 600; }
-    .col-date { width: 28%; color: #1e3a5f; font-weight: 700; }
-    .col-time { width: 16%; color: var(--time); font-weight: 800; }
-    .col-title { width: 36%; }
-    .col-person { width: 20%; color: var(--accent); font-weight: 600; }
+    .col-date { width: 28%; font-weight: 800; color: #6b4f8a; }
+    .col-time { width: 15%; font-weight: 800; color: #2f9e6b; }
+    .col-title { width: 37%; color: #4a3f55; font-weight: 650; }
+    .col-person { width: 20%; color: #d4497d; font-weight: 700; }
     .badge-today {
       display: inline-block;
       margin-left: 6px;
-      padding: 1px 7px;
+      padding: 2px 8px;
       border-radius: 999px;
-      background: #e6a817;
-      color: #fff;
+      background: linear-gradient(180deg, #ffd76a, #ffb703);
+      color: #7a4b00;
       font-size: 11px;
-      font-weight: 700;
-      vertical-align: middle;
+      font-weight: 800;
+      border: 1px solid #f0b429;
     }
     .empty, .err {
       margin-top: 8px;
-      padding: 28px 16px;
+      padding: 30px 16px;
       text-align: center;
-      font-size: 18px;
-      border-radius: 14px;
-      border: 2px dashed #7aa2ff;
-      background: #fff;
+      font-size: 17px;
+      border-radius: 22px;
+      border: 3px dashed #ffb3cf;
+      background: #fff9fc;
       color: var(--ink);
     }
-    .err { border-color: #e03131; background: #fff5f5; }
+    .err { border-color: #ff8e8e; background: #fff5f5; }
+    .footer-note {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 12px;
+      color: #7a6688;
+    }
+    .sparkle {
+      display: inline-block;
+      animation: pop 2.4s ease-in-out infinite;
+    }
+    @keyframes pop {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
     @media (max-width: 600px) {
       h1 { font-size: 22px; }
-      thead th, tbody td { font-size: 14px; padding: 9px 7px; }
-      .col-date { width: 30%; }
-      .col-time { width: 18%; }
-      .col-title { width: 32%; }
-      .col-person { width: 20%; }
+      .avatar { width: 76px; height: 76px; }
+      thead th, tbody td { font-size: 13px; padding: 10px 7px; }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="head">
-      <h1 id="title">當月活動</h1>
-      <div class="sub" id="range"></div>
+    <div class="hero">
+      <img class="avatar" src="./images/usagyuun.png" alt="Usagyuun" />
+      <div class="hero-text">
+        <h1><span class="sparkle">✧</span> 當月活動 <span class="sparkle">✦</span></h1>
+        <p class="subtitle" id="range"></p>
+        <div class="bubble">うさぎゅーん 陪你看行程 ♡</div>
+      </div>
     </div>
     <div class="meta" id="meta">載入中…</div>
     <div id="list"></div>
+    <div class="footer-note">Usagyuun calendar · soft & cute</div>
   </div>
 
   <script>
-    // Params:
-    //   ?ym=2026-07
-    //   ?year=2026&month=7
-    //   ?offset=0
-    //   ?person=Anson
-    //   ?src=./data/events.json
-    // Device:
-    //   https://nanson-at.github.io/Dashboard/month.html
-    //   https://nanson-at.github.io/Dashboard/month.html?ym=2026-07
-
     function pad(n) { return String(n).padStart(2, '0'); }
 
     function parseParams() {
@@ -153,7 +201,6 @@
       const now = new Date();
       let year = now.getFullYear();
       let month = now.getMonth() + 1;
-
       if (p.get('ym')) {
         const m = p.get('ym').match(/^(\d{4})-(\d{1,2})$/);
         if (m) { year = +m[1]; month = +m[2]; }
@@ -207,9 +254,7 @@
     async function main() {
       const cfg = parseParams();
       const { start, end } = monthRange(cfg.year, cfg.month);
-      document.getElementById('title').textContent = `${cfg.year}年${cfg.month}月 活動`;
-      document.getElementById('range').textContent = `${start}  →  ${end}`;
-
+      document.getElementById('range').textContent = `${cfg.year}年${cfg.month}月  ·  ${start} → ${end}`;
       const list = document.getElementById('list');
       const meta = document.getElementById('meta');
 
@@ -227,18 +272,14 @@
           }
           return true;
         });
-        events.sort((a, b) => {
-          const ka = `${a.date || ''} ${a.time || ''}`;
-          const kb = `${b.date || ''} ${b.time || ''}`;
-          return ka.localeCompare(kb);
-        });
+        events.sort((a, b) => (`${a.date||''} ${a.time||''}`).localeCompare(`${b.date||''} ${b.time||''}`));
 
-        meta.textContent = `共 ${events.length} 項` +
-          (cfg.person ? ` · 篩選：${cfg.person}` : '') +
+        meta.textContent = `共 ${events.length} 項可愛行程` +
+          (cfg.person ? ` · ${cfg.person}` : '') +
           ` · ${new Date().toLocaleString('zh-HK')}`;
 
         if (!events.length) {
-          list.innerHTML = `<div class="empty">呢個月暫時冇活動</div>`;
+          list.innerHTML = '<div class="empty">這個月暫時沒有活動唷 ✧<br/>うさぎゅーん 先休息一下 ♡</div>';
           return;
         }
 
@@ -246,20 +287,17 @@
         const rows = events.map(ev => {
           const d = String(ev.date || '').slice(0, 10);
           const isToday = d === today;
-          const dateLabel = `${d}（${weekdayZh(d)}）` + (isToday ? `<span class="badge-today">今日</span>` : '');
-          const time = escapeHtml(ev.time || '—');
-          const title = escapeHtml(ev.title || ev.name || '');
-          const person = escapeHtml(ev.person || ev.people || ev.who || '');
+          const dateLabel = `${d.slice(5)}（${weekdayZh(d)}）` + (isToday ? '<span class="badge-today">TODAY</span>' : '');
           return `<tr class="${isToday ? 'today' : ''}">
             <td class="col-date">${dateLabel}</td>
-            <td class="col-time">${time}</td>
-            <td class="col-title">${title}</td>
-            <td class="col-person">${person}</td>
+            <td class="col-time">${escapeHtml(ev.time || '—')}</td>
+            <td class="col-title">${escapeHtml(ev.title || ev.name || '')}</td>
+            <td class="col-person">${escapeHtml(ev.person || ev.people || ev.who || '')}</td>
           </tr>`;
         }).join('');
 
         list.innerHTML = `
-          <div class="table-wrap">
+          <div class="table-card">
             <table>
               <thead>
                 <tr>
@@ -274,7 +312,7 @@
           </div>`;
       } catch (e) {
         meta.textContent = '';
-        list.innerHTML = `<div class="err">無法載入活動：${escapeHtml(String(e.message || e))}</div>`;
+        list.innerHTML = `<div class="err">載入失敗：${escapeHtml(String(e.message || e))}</div>`;
       }
     }
 
