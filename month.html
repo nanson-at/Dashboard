@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache" />
+  <title>當月活動</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; min-height: 100%;
+      background: #fff; color: #000;
+      font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans TC", sans-serif;
+    }
+    .wrap { padding: 12px 14px 20px; max-width: 900px; margin: 0 auto; }
+    .head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      border-bottom: 3px solid #000; padding-bottom: 8px; margin-bottom: 12px;
+      gap: 10px; flex-wrap: wrap;
+    }
+    h1 { margin: 0; font-size: 28px; letter-spacing: 1px; }
+    .sub { font-size: 14px; color: #333; }
+    .nav a {
+      display: inline-block; margin-right: 8px; padding: 4px 10px;
+      border: 2px solid #000; text-decoration: none; color: #000; font-size: 14px;
+    }
+    .meta { font-size: 13px; margin-bottom: 10px; color: #222; }
+    .day {
+      border: 2px solid #111; margin: 0 0 10px; padding: 10px 12px;
+      page-break-inside: avoid;
+    }
+    .day.today { background: #ffe8a0; }
+    .day-head {
+      font-size: 18px; font-weight: 700; margin-bottom: 6px;
+      border-bottom: 1px solid #666; padding-bottom: 4px;
+    }
+    .item { font-size: 17px; padding: 4px 0; line-height: 1.35; }
+    .time { font-weight: 700; margin-right: 8px; min-width: 3.2em; display: inline-block; }
+    .person { color: #333; font-size: 14px; margin-left: 6px; }
+    .empty { font-size: 18px; padding: 24px 8px; border: 2px dashed #666; text-align: center; }
+    .err { color: #000; border: 2px solid #000; padding: 12px; font-size: 16px; }
+    /* e-ink: avoid thin gray text */
+    @media (max-width: 600px) {
+      h1 { font-size: 22px; }
+      .item { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h1 id="title">當月活動</h1>
+        <div class="sub" id="range"></div>
+      </div>
+      <div class="nav" id="nav"></div>
+    </div>
+    <div class="meta" id="meta">載入中…</div>
+    <div id="list"></div>
+  </div>
+
+  <script>
+    // Params:
+    //   ?ym=2026-07          (recommended)
+    //   ?year=2026&month=7
+    //   ?offset=0            (0=this month, -1=last, 1=next)
+    //   ?person=Anson        (optional filter)
+    //   ?src=./data/events.json
+    // Example device URL:
+    //   https://nanson-at.github.io/Dashboard/month.html?ym=2026-07
+    //   https://nanson-at.github.io/Dashboard/month.html  (auto current month)
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function parseParams() {
+      const p = new URLSearchParams(location.search);
+      const now = new Date();
+      let year = now.getFullYear();
+      let month = now.getMonth() + 1; // 1-12
+
+      if (p.get('ym')) {
+        const m = p.get('ym').match(/^(\d{4})-(\d{1,2})$/);
+        if (m) { year = +m[1]; month = +m[2]; }
+      } else {
+        if (p.get('year')) year = +p.get('year');
+        if (p.get('month')) month = +p.get('month');
+        const offset = p.has('offset') ? +p.get('offset') : 0;
+        if (!isNaN(offset) && offset !== 0) {
+          const d = new Date(year, month - 1 + offset, 1);
+          year = d.getFullYear();
+          month = d.getMonth() + 1;
+        }
+      }
+      if (month < 1 || month > 12 || isNaN(year)) {
+        year = now.getFullYear();
+        month = now.getMonth() + 1;
+      }
+      return {
+        year, month,
+        person: (p.get('person') || p.get('who') || '').trim(),
+        src: p.get('src') || './data/events.json'
+      };
+    }
+
+    function monthRange(year, month) {
+      const start = `${year}-${pad(month)}-01`;
+      const last = new Date(year, month, 0).getDate();
+      const end = `${year}-${pad(month)}-${pad(last)}`;
+      return { start, end, last };
+    }
+
+    function ymString(year, month) {
+      return `${year}-${pad(month)}`;
+    }
+
+    function weekdayZh(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const w = new Date(y, m - 1, d).getDay();
+      return ['日','一','二','三','四','五','六'][w];
+    }
+
+    function todayStr() {
+      const n = new Date();
+      return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
+    }
+
+    function buildNav(year, month) {
+      const prev = new Date(year, month - 2, 1);
+      const next = new Date(year, month, 1);
+      const prevYm = ymString(prev.getFullYear(), prev.getMonth() + 1);
+      const nextYm = ymString(next.getFullYear(), next.getMonth() + 1);
+      const curYm = ymString(year, month);
+      const person = new URLSearchParams(location.search).get('person');
+      const q = (ym) => {
+        let s = `?ym=${ym}`;
+        if (person) s += `&person=${encodeURIComponent(person)}`;
+        return s;
+      };
+      document.getElementById('nav').innerHTML =
+        `<a href="${q(prevYm)}">‹ 上月</a>` +
+        `<a href="?">本月</a>` +
+        `<a href="${q(nextYm)}">下月 ›</a>`;
+      // keep cur in title data
+      document.getElementById('title').dataset.ym = curYm;
+    }
+
+    async function main() {
+      const cfg = parseParams();
+      const { start, end } = monthRange(cfg.year, cfg.month);
+      const ym = ymString(cfg.year, cfg.month);
+      document.getElementById('title').textContent = `${cfg.year}年${cfg.month}月 活動`;
+      document.getElementById('range').textContent = `${start} → ${end}`;
+      buildNav(cfg.year, cfg.month);
+
+      const list = document.getElementById('list');
+      const meta = document.getElementById('meta');
+
+      try {
+        const res = await fetch(cfg.src + (cfg.src.includes('?') ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        let events = Array.isArray(data) ? data : (data.events || data.data || []);
+        events = events.filter(ev => {
+          const d = String(ev.date || '').slice(0, 10);
+          if (d < start || d > end) return false;
+          if (cfg.person) {
+            const who = String(ev.person || ev.people || ev.who || '');
+            if (!who.includes(cfg.person)) return false;
+          }
+          return true;
+        });
+        events.sort((a, b) => {
+          const ka = `${a.date || ''} ${a.time || ''}`;
+          const kb = `${b.date || ''} ${b.time || ''}`;
+          return ka.localeCompare(kb);
+        });
+
+        meta.textContent = `共 ${events.length} 項` +
+          (cfg.person ? ` · 篩選：${cfg.person}` : '') +
+          ` · 更新顯示：${new Date().toLocaleString('zh-HK')}`;
+
+        if (!events.length) {
+          list.innerHTML = `<div class="empty">呢個月暫時冇活動</div>`;
+          return;
+        }
+
+        // group by date
+        const groups = {};
+        for (const ev of events) {
+          const d = String(ev.date).slice(0, 10);
+          (groups[d] || (groups[d] = [])).push(ev);
+        }
+
+        const today = todayStr();
+        const html = Object.keys(groups).sort().map(d => {
+          const items = groups[d].map(ev => {
+            const time = ev.time ? `<span class="time">${escapeHtml(ev.time)}</span>` : `<span class="time">—</span>`;
+            const title = escapeHtml(ev.title || ev.name || '');
+            const person = (ev.person || ev.people || ev.who)
+              ? `<span class="person">${escapeHtml(ev.person || ev.people || ev.who)}</span>` : '';
+            return `<div class="item">${time}${title}${person}</div>`;
+          }).join('');
+          const cls = d === today ? 'day today' : 'day';
+          return `<div class="${cls}"><div class="day-head">${d}（${weekdayZh(d)}）</div>${items}</div>`;
+        }).join('');
+        list.innerHTML = html;
+      } catch (e) {
+        meta.textContent = '';
+        list.innerHTML = `<div class="err">無法載入活動：${escapeHtml(String(e.message || e))}<br/>src=${escapeHtml(cfg.src)}</div>`;
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    main();
+  </script>
+</body>
+</html>
